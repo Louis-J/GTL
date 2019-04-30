@@ -42,7 +42,7 @@ namespace detail {
     template <class CASES>
     constexpr auto makePredicJ(CASES cases) {
         constexpr auto Rcases = cases();
-        static_assert(std::get<0>(Rcases) == false, "é”®å€¼æœ‰é‡å¤ï¼");
+        static_assert(std::get<0>(Rcases) == false, "¼üÖµÓĞÖØ¸´£¡");
         constexpr auto arr = std::get<1>(Rcases);
         using TypeC = decltype(arr[0].key);
         using TypeD = decltype(arr[0].deal);
@@ -52,7 +52,7 @@ namespace detail {
         
         return PredicJ<length, TypeC, TypeD, offset> {
             [&](){
-                std::array<TypeC, length> pat{};
+                std::array<TypeD, length> pat{};
                 for(auto c : arr) {
                     pat[c.key - offset] = c.deal;
                 }
@@ -70,8 +70,8 @@ namespace detail {
         using TypeC = decltype(arr[0].key);
         using TypeD = decltype(arr[0].deal);
 
-        static_assert(typeid(arr[0].deal) == typeid(Rdft), "defaultç±»å‹ä¸åŒ¹é…ï¼");
-        static_assert(std::get<0>(Rcases) == false, "é”®å€¼æœ‰é‡å¤ï¼");
+        static_assert(TypeEqual(arr[0].deal, Rdft.deal), "defaultÀàĞÍ²»Æ¥Åä£¡");
+        static_assert(std::get<0>(Rcases) == false, "¼üÖµÓĞÖØ¸´£¡");
 
         constexpr auto _N = arr.size();
         constexpr auto offset = arr[0].key;
@@ -79,14 +79,16 @@ namespace detail {
         
         return PredicJ<length, TypeC, TypeD, offset> {
             [&](){
-                std::array<TypeC, length> pat{};
-                pat.fill(Rdft);
+                std::array<TypeD, length> pat{};
+                for(auto &c : pat) {
+                    c = Rdft.deal;
+                }
                 for(auto c : arr) {
                     pat[c.key - offset] = c.deal;
                 }
                 return pat;
             }(),
-            Rdft,
+            Rdft.deal,
         };
     };
 

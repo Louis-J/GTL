@@ -8,41 +8,63 @@
 #include <tuple>
 
 namespace GTL::Switch {
-#define STRINGIFY(x) #x 
-#define TOSTRING(x) STRINGIFY(x) 
-#define AT __FILE__ ":" TOSTRING(__LINE__) 
-#define CONVALS(...) [=]{return std::tuple{__VA_ARGS__};}
-#define CONVAL(VAL)  [=]{return (VAL);}
-#define CONARRY(...) [=]{return std::array{__VA_ARGS__};}
+// #define STRINGIFY(x) #x 
+// #define TOSTRING(x) STRINGIFY(x) 
+// #define AT __FILE__ ":" TOSTRING(__LINE__) 
+// #define CONVALS(...) []{return std::tuple{__VA_ARGS__};}
+// #define CONVAL(VAL)  [=]{return (VAL);}
+// #define CONARRY(...) [=]{return std::array{__VA_ARGS__};}
 
-#define CASES(...) [&]{                                       \
+
+#define CASES(...) []{                                        \
     auto arr = std::array{__VA_ARGS__};                       \
     bool repeatKey = CaseSort(std::begin(arr), std::end(arr));\
     return std::tuple{repeatKey, arr};                        \
 }
-#define DEFAULT(...) [&]{                                     \
-    return __VA_ARGS__;                                       \
+
+#define DEFAULT(...) []{                                      \
+    return Default __VA_ARGS__;                               \
 }
+
+
+template <typename TypeA, typename TypeB>
+constexpr bool TypeEqual(TypeA a, TypeB b) {return false;};
+template <typename Type>
+constexpr bool TypeEqual(Type a, Type b) {return true;};
+
 
 template <class TypeC, class TypeD>
 struct Case {
     TypeC key;
     TypeD deal;
 
-    friend constexpr bool operator< (Case<TypeC, TypeD> lhs, Case<TypeC, TypeD> rhs) {return lhs.key < rhs.key;}
-    friend constexpr bool operator< (Case<TypeC, TypeD> &lhs, Case<TypeC, TypeD> &rhs) {return lhs.key < rhs.key;}
-    friend constexpr bool operator< (Case<TypeC, TypeD> &&lhs, Case<TypeC, TypeD> &&rhs) {return lhs.key < rhs.key;}
+    friend constexpr bool operator< (Case<TypeC, TypeD> lhs, Case<TypeC, TypeD> rhs)      {return lhs.key < rhs.key;}
+    friend constexpr bool operator< (Case<TypeC, TypeD> &lhs, Case<TypeC, TypeD> &rhs)    {return lhs.key < rhs.key;}
+    friend constexpr bool operator< (Case<TypeC, TypeD> &&lhs, Case<TypeC, TypeD> &&rhs)  {return lhs.key < rhs.key;}
 
-    friend constexpr bool operator!= (Case<TypeC, TypeD> &lhs, Case<TypeC, TypeD> &rhs) {return lhs.key != rhs.key;}
+    friend constexpr bool operator!= (Case<TypeC, TypeD> &lhs, Case<TypeC, TypeD> &rhs)   {return lhs.key != rhs.key;}
     friend constexpr bool operator!= (Case<TypeC, TypeD> &&lhs, Case<TypeC, TypeD> &&rhs) {return lhs.key != rhs.key;}
 
-    //鐢ㄤ簬sort
+
+    template <typename TypeV>
+    friend bool operator< (Case<TypeC, TypeD> c, TypeV key)      {return c.key < key;}
+    template <typename TypeV>
+    friend bool operator< (Case<TypeC, TypeD> &c, TypeV &key)    {return c.key < key;}
+    template <typename TypeV>
+    friend bool operator< (Case<TypeC, TypeD> &&c, TypeV &&key)  {return c.key < key;}
+
+    template <typename TypeV>
+    friend bool operator!= (Case<TypeC, TypeD> &c, TypeV &key)   {return c.key != key;}
+    template <typename TypeV>
+    friend bool operator!= (Case<TypeC, TypeD> &&c, TypeV &&key) {return c.key != key;}
+
+    //用于sort
     friend constexpr void iter_swap(Case<TypeC, TypeD> &lhs, Case<TypeC, TypeD> &rhs) {
         Case<TypeC, TypeD> tmp = std::move(lhs);
         lhs = std::move(rhs);
         rhs = std::move(tmp);
     }
-    //鐢ㄤ簬constexpr sort
+    //用于constexpr sort
     friend constexpr void iter_swap(Case<TypeC, TypeD> &&lhs, Case<TypeC, TypeD> &&rhs) {
         Case<TypeC, TypeD> tmp = std::move(lhs);
         lhs = std::move(rhs);
@@ -73,15 +95,11 @@ struct Case {
     }
 };
 
-// template <class TypeD>
-// struct DEFAULT {
-//    TypeD deal;
-// };
+template <class TypeD>
+struct Default {
+   TypeD deal;
+};
 
-// template <class TypeD>
-// constexpr auto DEFAULT(TypeD deal) {
-//     return [&]{return deal;};
-// }
 
 template <typename RAIt>
 constexpr RAIt next(RAIt it, typename std::iterator_traits<RAIt>::difference_type n = 1)
